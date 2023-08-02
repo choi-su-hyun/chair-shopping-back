@@ -5,6 +5,8 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var cors = require("cors");
 var bodyParser = require("body-parser");
+// const multer = require("multer");
+// const form_data = multer();
 
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
@@ -33,7 +35,10 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "/public")));
+app.use(express.static(path.join(__dirname, "/uploads")));
+// app.use(express.static("uploads"));
+// app.use(form_data.array());
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
@@ -44,7 +49,6 @@ app.use("/admin", adminRouter);
 app.use(function (req, res, next) {
   next(createError(404));
 });
-
 // error handler
 app.use(function (err, req, res, next) {
   // set locals, only providing error in development

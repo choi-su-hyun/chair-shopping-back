@@ -5,7 +5,7 @@ var db = require("../lib/db");
 //상품 list 전달하기 서버 api
 router.get("/product-list", function (req, res) {
   db.query(
-    `SELECT * FROM product INNER JOIN product_category ON product.category_idx = product_category.idx`,
+    `SELECT * FROM product INNER JOIN product_category ON product.category_idx = product_category.idx LEFT JOIN image ON product.idx = image.product_idx`,
     function (err, result) {
       console.log(result);
       if (err) {
