@@ -21,36 +21,23 @@ router.post("/admin-login-process", function (req, res) {
           return res.status(404).json({
             message: "ID_NOTHING",
           });
+        } else if (rows[0].admin_password === post.admin_password) {
+          const adminData = {
+            adminIdx: rows[0].idx,
+            nickName: rows[0].admin_id,
+          };
+          const token = newToken.sign(adminData).token;
+          console.log("토큰 확인", token);
+          res.status(200).json({
+            message: "THIS_USER_CERTIFICATED",
+            adminId: rows[0].admin_id,
+            token: token,
+          });
+        } else {
+          res.status(401).json({
+            message: "PASSWORD_NOT_MATCHED",
+          });
         }
-        await bcrypt.compare(
-          post.admin_password,
-          rows[0].admin_password,
-          function (err2, match) {
-            if (err2) {
-              res.status(500).json({
-                message: "DECRYPTION_ERROR",
-                err2,
-              });
-            }
-            if (match) {
-              const adminData = {
-                adminIdx: rows[0].idx,
-                nickName: rows[0].admin_id,
-              };
-              const token = newToken.sign(adminData).token;
-              console.log("토큰 확인", token);
-              res.status(200).json({
-                message: "THIS_USER_CERTIFICATED",
-                adminId: rows[0].admin_id,
-                token: token,
-              });
-            } else {
-              res.status(401).json({
-                message: "PASSWORD_NOT_MATCHED",
-              });
-            }
-          }
-        );
       }
     );
   } catch (error) {
