@@ -72,7 +72,7 @@ router.post("/category-create-process", function (req, res) {
     [post],
     function (err, result) {
       if (err) {
-        res.status(500).json({
+        return res.status(500).json({
           message: "DB_ERROR",
         });
       }
@@ -119,7 +119,8 @@ router.post(
         productIdx = result.insertId;
 
         db.query(
-          `INSERT INTO image(product_idx, image_thumnail_path, image_detail_path) VALUE(?, ?, ?)`,
+          //이미지를 db에 저장
+          `INSERT INTO image(product_idx, image_thumnail_path, image_detail_path) VALUES(?, ?, ?)`,
           [
             productIdx,
             req.files.product_image[0].filename,
@@ -132,9 +133,30 @@ router.post(
                 content: err,
               });
             }
-            res.status(200).json({
+
+            for (let i of post.product_option) {
+              //옵션을 db에 저장
+              if (i.optionName === "" || i.inventory === "") {
+                console.log("값이 비어있어 반복문을 넘어감");
+                continue;
+              }
+              console.log("i 값 확인", i);
+              db.query(
+                `INSERT INTO product_option(option_name, product_id, inventory) VALUES(?, ?, ?)`,
+                [i.optionName, productIdx, i.inventory],
+                function (err, result) {
+                  if (err) {
+                    return res.status(500).json({
+                      message: "DB_ERROR_IMAGE",
+                      content: err,
+                    });
+                  }
+                }
+              );
+            }
+            return res.status(200).json({
               message: "SUCCESS_PRODUCT_INSERT",
-              content: result,
+              content: "result",
             });
           }
         );
