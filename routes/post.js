@@ -88,4 +88,26 @@ router.post("/product-detail-data-process", function (req, res) {
   );
 });
 
+router.post("/product-option-list", function (req, res) {
+  const post = req.body;
+  db.query(
+    `SELECT * FROM product_option WHERE product_id = ?`,
+    [post.idx],
+    function (err, rows) {
+      if (err) {
+        console.log(err);
+        return res.status(404).json({
+          message: "DB_ERROR",
+        });
+      }
+
+      res.status(200).json({
+        message: "SUCCESS",
+        contents: rows,
+      });
+    }
+  );
+  console.log(post);
+});
+
 module.exports = router;
