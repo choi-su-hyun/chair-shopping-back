@@ -19,7 +19,7 @@ var app = express();
 app.use(
   cors({
     // front 서버인 http://localhost:8080 의 요청을 허용하도록 cors 사용
-    origin: "http://localhost:3001",
+    origin: "http://localhost:3000",
     credentials: true,
   })
 );
