@@ -11,7 +11,9 @@ var bodyParser = require("body-parser");
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var postRouter = require("./routes/post");
+var postAuthRouter = require("./routes/post-auth");
 var adminRouter = require("./routes/admin");
+var tokenAuth = require("./util/tokenAuth");
 
 var app = express();
 
@@ -43,6 +45,7 @@ app.use(express.static(path.join(__dirname, "/uploads")));
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/post", postRouter);
+app.use("/post-auth", tokenAuth, postAuthRouter);
 app.use("/admin", adminRouter);
 
 // catch 404 and forward to error handler
