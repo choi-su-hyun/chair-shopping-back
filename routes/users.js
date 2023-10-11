@@ -68,9 +68,10 @@ router.post("/login-process", function (req, res) {
             }
             if (match) {
               const userData = {
-                userIdx: rows[0].user_idx,
+                userIdx: rows[0].idx,
                 nickName: rows[0].user_name,
               };
+              console.log("사용자 값 확인", userData);
               const token = newToken.sign(userData).token;
               console.log("토큰 확인", token);
               res.status(200).json({

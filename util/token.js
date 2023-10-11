@@ -7,6 +7,7 @@ module.exports = {
       idx: user.userIdx,
       nickName: user.nickName,
     };
+    console.log("payload", payload);
     const result = {
       //sign메소드를 통해 access token 발급!
       token: jwt.sign(payload, jwtPrivateData.secretKey, jwtPrivateData.option),

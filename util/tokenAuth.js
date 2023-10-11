@@ -8,13 +8,14 @@ module.exports = async function tokenAuthCheck(req, res, next) {
     });
   }
   const tokenData = req.headers.authorization;
+  console.log("tokenData", tokenData);
 
   try {
     const payload = tokenTool.verify(tokenData);
     console.log("payload 값", payload);
     db.query(
       `SELECT * FROM user WHERE idx=?`,
-      [payload.userIdx],
+      [payload.idx],
       function (err, rows) {
         if (err) {
           res.status(500).json({
