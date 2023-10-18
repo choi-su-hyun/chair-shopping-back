@@ -113,17 +113,26 @@ router.post("/product-option-list", function (req, res) {
   // console.log(post);
 });
 
-//카트DB에 저장 api
-router.post("/insert-to-cart-process", function (req, res) {
-  const post = req.body;
-  const userData = req.user;
-  console.log("post 내용", post, "user 내용", userData);
-  // db.query(`INSERT INTO cart(product_idx, user_idx, cart_qty, option_idx)`, [
-  //   post.productIdx,
-  // ]);
-  res.status(200).json({
-    message: "연결 완료",
-  });
+//리뷰 DB에서 특정 상품 리뷰 리스트로 전달하기
+router.get("/get-review-list-process", function (req, res) {
+  const post = req.query;
+  console.log("post", post);
+  db.query(
+    `SELECT a.product_idx, a.title, a.paragraph, a.evaluation_star, a.review_image_path, a.created_date ,b.user_name FROM review AS a JOIN user AS b ON a.user_idx=b.idx WHERE a.product_idx=?`,
+    [post.productId],
+    function (err, rows) {
+      if (err) {
+        console.log(err);
+        return res.status(404).json({
+          message: "DB_ERROR",
+        });
+      }
+      res.status(200).json({
+        message: "SUCCESS",
+        contents: rows,
+      });
+    }
+  );
 });
 
 module.exports = router;
