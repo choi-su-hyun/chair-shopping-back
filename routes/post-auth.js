@@ -1,12 +1,13 @@
 var express = require("express");
 var router = express.Router();
 var db = require("../lib/db");
+var upload = require("../util/multer");
 
 //카트 DB에 상품 추가
 router.post("/insert-to-cart-process", function (req, res) {
   const post = req.body;
   const userData = req.user;
-  console.log("post 내용", post, "user 내용", userData);
+  // console.log("post 내용", post, "user 내용", userData);
   db.query(
     `INSERT INTO cart(product_idx, user_idx, cart_qty, option_idx) VALUES(?,?,?,?)`,
     [post.productIdx, userData.idx, post.quantity, post.productOption],
@@ -29,7 +30,7 @@ router.post("/insert-to-cart-process", function (req, res) {
 //카트 리스트 정리 후 전달
 router.get("/get-cart-list-process", function (req, res) {
   const userData = req.user;
-  console.log("user 내용", userData);
+  // console.log("user 내용", userData);
   db.query(
     `SELECT * FROM cart where user_idx=?`,
     [userData.idx],
@@ -74,7 +75,7 @@ router.get("/get-cart-list-process", function (req, res) {
 router.post("/increase-cart-inventory", function (req, res) {
   const post = req.body;
   const userData = req.user;
-  console.log("post 값", post);
+  // console.log("post 값", post);
   db.query(
     `UPDATE cart SET cart_qty=cart_qty + 1 WHERE user_idx=? AND product_idx=?`,
     [userData.idx, post.idx],
@@ -140,5 +141,54 @@ router.delete("/delete-selected-cart", function (req, res) {
     message: "DELETE_SUCCESS",
   });
 });
+
+//사용자별 리뷰 DB에 작성
+router.post(
+  "/create-review-process",
+  upload.fields([{ name: "reviewImage" }, { name: "reviewTextData" }]),
+  function (req, res) {
+    const userData = req.user;
+    const files = req.files;
+    const post = JSON.parse(req.body.reviewTextData);
+
+    console.log("userData, files", userData, files, post);
+    console.log(
+      "내용물 확인중",
+      userData.idx,
+      post.productId.id,
+      post.reviewTitle,
+      post.reviewParagraph,
+      post.reviewStarRate,
+      files.reviewImage[0].filename
+    );
+    db.query(
+      `INSERT INTO review(user_idx, product_idx, title, paragraph, evaluation_star, review_image_path) VALUES(?, ?, ?, ?, ?, ?)`,
+      [
+        userData.idx,
+        post.productId.id,
+        post.reviewTitle,
+        post.reviewParagraph,
+        post.reviewStarRate,
+        files.reviewImage[0].filename,
+      ],
+      function (err, result) {
+        if (err) {
+          console.log(err);
+          return res.status(500).json({
+            message: "DB_ERROR",
+            err,
+          });
+        }
+        // res.status(200).json({
+        //   message: "SUCCESS",
+        //   // result: result,
+        // });
+      }
+    );
+    // res.status(200).json({
+    //   message: "SUCCESS",
+    // });
+  }
+);
 
 module.exports = router;
