@@ -14,6 +14,8 @@ var postRouter = require("./routes/post");
 var postAuthRouter = require("./routes/post-auth");
 var adminRouter = require("./routes/admin");
 var tokenAuth = require("./util/tokenAuth");
+var userCheck = require("./util/userCheck");
+var refresh = require("./routes/refreshToken");
 
 var app = express();
 
@@ -42,10 +44,12 @@ app.use(express.static(path.join(__dirname, "/uploads")));
 // app.use(express.static("uploads"));
 // app.use(form_data.array());
 
+app.use("/refresh", refresh);
+
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/post", postRouter);
-app.use("/post-auth", tokenAuth, postAuthRouter);
+app.use("/post-auth", tokenAuth, userCheck, postAuthRouter);
 app.use("/admin", adminRouter);
 
 // catch 404 and forward to error handler

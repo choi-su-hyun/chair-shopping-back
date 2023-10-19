@@ -68,19 +68,35 @@ router.post("/login-process", function (req, res) {
             }
             if (match) {
               const userData = {
-                userIdx: rows[0].idx,
+                idx: rows[0].idx,
                 nickName: rows[0].user_name,
               };
               console.log("사용자 값 확인", userData);
-              const token = newToken.sign(userData).token;
+              const token = newToken.sign(userData);
               console.log("토큰 확인", token);
-              res.status(200).json({
-                message: "THIS_USER_CERTIFICATED",
-                nickName: rows[0].user_name,
-                token: token,
-              });
+              const refreshToken = newToken.refresh();
+              console.log("토큰 확인", refreshToken);
+              db.query(
+                `UPDATE user SET refresh_token=? WHERE idx=?`,
+                [refreshToken, userData.userIdx],
+                function (err, result) {
+                  if (err) {
+                    return res.status(500).json({
+                      message: "DB_ERROR",
+                      err,
+                      result,
+                    });
+                  }
+                  return res.status(200).json({
+                    message: "THIS_USER_CERTIFICATED",
+                    nickName: rows[0].user_name,
+                    token: token,
+                    refreshToken: refreshToken,
+                  });
+                }
+              );
             } else {
-              res.status(401).json({
+              return res.status(401).json({
                 message: "PASSWORD_NOT_MATCHED",
               });
             }
@@ -89,7 +105,7 @@ router.post("/login-process", function (req, res) {
       }
     );
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: "SOMETHING_ERROR",
       error,
     });
