@@ -185,9 +185,9 @@ router.post(
         // });
       }
     );
-    // res.status(200).json({
-    //   message: "SUCCESS",
-    // });
+    res.status(200).json({
+      message: "SUCCESS",
+    });
   }
 );
 
