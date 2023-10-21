@@ -59,7 +59,7 @@ router.get("/get-cart-list-process", function (req, res) {
               err,
             });
           }
-          console.log("rows2 값", rows2[0]);
+          // console.log("rows2 값", rows2[0]);
 
           res.status(200).json({
             message: "연결 완료",
@@ -121,7 +121,7 @@ router.delete("/delete-cart", function (req, res) {
 router.delete("/delete-selected-cart", function (req, res) {
   const userData = req.user;
   const post = req.body;
-  console.log("userData, post", userData, post);
+  // console.log("userData, post", userData, post);
   for (let i of post.selectedData) {
     db.query(
       `DELETE FROM cart WHERE user_idx=? AND idx=?`,
@@ -151,16 +151,16 @@ router.post(
     const files = req.files;
     const post = JSON.parse(req.body.reviewTextData);
 
-    console.log("userData, files", userData, files, post);
-    console.log(
-      "내용물 확인중",
-      userData.idx,
-      post.productId.id,
-      post.reviewTitle,
-      post.reviewParagraph,
-      post.reviewStarRate,
-      files.reviewImage[0].filename
-    );
+    // console.log("userData, files", userData, files, post);
+    // console.log(
+    //   "내용물 확인중",
+    //   userData.idx,
+    //   post.productId.id,
+    //   post.reviewTitle,
+    //   post.reviewParagraph,
+    //   post.reviewStarRate,
+    //   files.reviewImage[0].filename
+    // );
     db.query(
       `INSERT INTO review(user_idx, product_idx, title, paragraph, evaluation_star, review_image_path) VALUES(?, ?, ?, ?, ?, ?)`,
       [

@@ -17,58 +17,99 @@ module.exports = {
       // verify를 통해 값 decode!
       decoded = jwt.verify(token, jwtPrivateData.secretKey);
       console.log("decoded", decoded);
+      return {
+        authState: true,
+        message: "token valide",
+        data: decoded,
+      };
     } catch (err) {
       if (err.message === "jwt expired") {
         console.log("expired token");
-        return "expired token";
+        return {
+          authState: false,
+          message: "expired token",
+        };
       } else if (err.message === "invalid token") {
         console.log("invalid token");
-        return "invalid token";
+        return {
+          authState: false,
+          message: "invalid token",
+        };
       } else {
         console.log("token is not included", err);
-        return "token is not included";
+        return {
+          authState: false,
+          message: "token is not included",
+          data: err,
+        };
       }
-      // console.log(err);
     }
-    return decoded;
   },
   refresh: function () {
     return jwt.sign({}, jwtPrivateData.secretKey, jwtPrivateData.refreshOption);
   },
-  refreshVerify: function (token, userId) {
-    try {
-      let userTokenData;
-      db.query(
-        `SELECT refresh_token FROM user WHERE idx=?`,
-        [userId],
-        function (err, row) {
+  refreshVerify: async function (token, userId) {
+    function dbQueryAsync(query, argument) {
+      return new Promise((resolve, reject) => {
+        db.query(query, argument, function (err, result) {
           if (err) {
             console.log(err);
-            return {
-              status: "ERROR",
+            reject({
+              authState: false,
+              message: "ERROR",
               data: err,
-            };
+            });
           }
-          console.log(row[0]);
-          userTokenData = row[0];
-          if (token === userTokenData) {
-            userTokenData;
-            return userTokenData;
-          } else {
-            return "Refresh token is uncorrect";
-          }
-        }
+          resolve(result);
+        });
+      });
+    }
+    try {
+      const userTokenData = await dbQueryAsync(
+        `SELECT refresh_token FROM user WHERE idx=?`,
+        [userId]
       );
-    } catch (error) {
+      console.log("userTokenData db함수 값", userTokenData[0].refresh_token);
+      console.log("token 값", token);
+      console.log(
+        "userTokenData 과 token 값 비교",
+        token == userTokenData[0].refresh_token
+      );
+      if (token == userTokenData[0].refresh_token) {
+        console.log("if문 실행");
+        return {
+          authState: true,
+          message: "Token is correct",
+          data: userTokenData,
+        };
+      } else {
+        console.log("else 문 실행");
+        return {
+          authState: false,
+          message: "Refresh token is uncorrect",
+        };
+      }
+    } catch (err) {
+      console.log("catch문 실행");
       if (err.message === "jwt expired") {
-        console.log("expired token");
-        return "expired token";
+        console.log("refresh expired token");
+        return {
+          authState: false,
+          message: "expired token",
+        };
       } else if (err.message === "invalid token") {
         console.log("invalid token");
-        return "invalid token";
+        return {
+          authState: false,
+          message: "invalid token",
+        };
       } else {
         console.log("token is not included", err);
-        return "token is not included";
+        return {
+          authState: false,
+          message: "token is not included",
+          data: err,
+        };
       }
     }
   },

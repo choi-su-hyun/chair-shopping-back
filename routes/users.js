@@ -73,12 +73,12 @@ router.post("/login-process", function (req, res) {
               };
               console.log("사용자 값 확인", userData);
               const token = newToken.sign(userData);
-              console.log("토큰 확인", token);
+              console.log("토큰 확인 token", token);
               const refreshToken = newToken.refresh();
-              console.log("토큰 확인", refreshToken);
+              console.log("토큰 확인 refreshToken", refreshToken);
               db.query(
                 `UPDATE user SET refresh_token=? WHERE idx=?`,
-                [refreshToken, userData.userIdx],
+                [refreshToken, userData.idx],
                 function (err, result) {
                   if (err) {
                     return res.status(500).json({
