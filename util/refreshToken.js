@@ -18,8 +18,8 @@ const refresh = async (req, res) => {
 
     const refreshResult = await refreshVerify(refreshToken, decoded.idx);
     if (!accessResult.authState) {
-      console.log("refreshResult 값", refreshResult);
-      console.log("accessResult 값", accessResult);
+      // console.log("refreshResult 값", refreshResult);
+      // console.log("accessResult 값", accessResult);
       if (!refreshResult.authState) {
         res.status(401).json({
           message: "Expired/invalid all token",
