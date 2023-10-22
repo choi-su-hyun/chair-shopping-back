@@ -118,7 +118,7 @@ router.get("/get-review-list-process", function (req, res) {
   const post = req.query;
   // console.log("post", post);
   db.query(
-    `SELECT a.product_idx, a.title, a.paragraph, a.evaluation_star, a.review_image_path, a.created_date ,b.user_name FROM review AS a JOIN user AS b ON a.user_idx=b.idx WHERE a.product_idx=?`,
+    `SELECT a.product_idx, a.title, a.paragraph, a.evaluation_star, a.review_image_path, a.created_date ,b.user_name, b.idx as user_idx FROM review AS a JOIN user AS b ON a.user_idx=b.idx WHERE a.product_idx=?`,
     [post.productId],
     function (err, rows) {
       if (err) {

@@ -191,4 +191,13 @@ router.post(
   }
 );
 
+//DB에서 현재 사용자 정보 전달
+router.get("/get-user-info", function (req, res) {
+  const userData = req.user;
+  res.status(200).json({
+    message: "연결완료",
+    contents: userData,
+  });
+});
+
 module.exports = router;
