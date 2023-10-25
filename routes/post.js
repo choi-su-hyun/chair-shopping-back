@@ -66,13 +66,13 @@ router.post("/product-category-data", function (req, res) {
 });
 
 //상세페이지 내용 전송
-router.post("/product-detail-data-process", function (req, res) {
-  const post = req.body;
+router.get("/product-detail-data-process", function (req, res) {
+  const post = req.query;
   db.query(
     `SELECT a.idx, a.category_idx, b.category_name, a.product_name, a.product_description, a.product_discount, a.product_price, c.image_thumnail_path, c.image_detail_path  FROM product AS a 
     INNER JOIN product_category AS b ON a.category_idx = b.idx 
     INNER JOIN image AS c ON a.idx = c.product_idx WHERE a.idx = ?`,
-    [post.idx],
+    [post.productId],
     function (err, result) {
       if (err) {
         console.log(err);
@@ -91,11 +91,11 @@ router.post("/product-detail-data-process", function (req, res) {
 });
 
 //해당 상품의 옵션 리스트 전달 api
-router.post("/product-option-list", function (req, res) {
-  const post = req.body;
+router.get("/product-option-list", function (req, res) {
+  const post = req.query;
   db.query(
     `SELECT * FROM product_option WHERE product_id = ?`,
-    [post.idx],
+    [post.productId],
     function (err, rows) {
       if (err) {
         console.log(err);
