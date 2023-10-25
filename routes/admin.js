@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 var db = require("../lib/db");
-var newToken = require("../util/token");
+var { sign } = require("../util/token");
 var bcrypt = require("bcrypt");
 var upload = require("../util/multer");
 
@@ -26,7 +26,7 @@ router.post("/admin-login-process", function (req, res) {
             adminIdx: rows[0].idx,
             nickName: rows[0].admin_id,
           };
-          const token = newToken.sign(adminData).token;
+          const token = sign(adminData);
           console.log("토큰 확인", token);
           res.status(200).json({
             message: "THIS_USER_CERTIFICATED",
@@ -164,4 +164,6 @@ router.post(
     );
   }
 );
+
+//DB내의 상품 정보 수정
 module.exports = router;
