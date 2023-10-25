@@ -78,7 +78,7 @@ router.post("/increase-cart-inventory", function (req, res) {
   // console.log("post 값", post);
   db.query(
     `UPDATE cart SET cart_qty=cart_qty + 1 WHERE user_idx=? AND product_idx=?`,
-    [userData.idx, post.idx],
+    [userData.idx, post.productId],
     function (err, result) {
       if (err) {
         console.log(err);
