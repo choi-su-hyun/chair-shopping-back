@@ -4,6 +4,7 @@ var db = require("../lib/db");
 var { sign } = require("../util/token");
 var bcrypt = require("bcrypt");
 var upload = require("../util/multer");
+var fs = require("fs");
 
 //admin 로그인
 router.post("/admin-login-process", function (req, res) {
@@ -165,5 +166,143 @@ router.post(
   }
 );
 
-//DB내의 상품 정보 수정
+//특정 상품 DB 수정
+router.put(
+  "/product-update-process",
+  upload.fields([
+    { name: "product_image" },
+    { name: "product_detail_image" },
+    { name: "data" },
+  ]),
+  function (req, res) {
+    const post = JSON.parse(req.body.data);
+    const productId = req.query.productId.productId;
+    console.log("post 내용", post, req.files, productId);
+
+    db.query(
+      `UPDATE product SET product_name=?, product_price=?, product_description=?, category_idx=? ,product_discount=? WHERE idx=?`,
+      [
+        post.product_name,
+        post.product_price,
+        post.product_description,
+        post.product_category,
+        post.product_discount_rate,
+        productId,
+      ],
+      function (err, result) {
+        if (err) {
+          return res.status(500).json({
+            message: "DB_ERROR_IMAGE",
+            content: err,
+          });
+        }
+        //옵션 수정
+        db.query(
+          `SELECT option_name FROM product_option WHERE product_id=?`,
+          [productId],
+          function (err, rows) {
+            if (err) {
+              return res.status(500).json({
+                message: "DB_ERROR_OPTION",
+                content: err,
+              });
+            }
+            console.log("rows 값", rows);
+
+            let haveToUpdate = post.product_option.filter((item) =>
+              rows.includes(item.optionName)
+            );
+            let haveToDelete = post.product_option.filter(
+              (item) => !rows.includes(item.optionName)
+            );
+            let haveToInsert = rows.filter(
+              (item) => !post.product_option.includes(item.option_name)
+            );
+            console.log(
+              "option 확인",
+              haveToUpdate,
+              haveToDelete,
+              haveToInsert
+            );
+          }
+        );
+        // for (let item of post.product_option) {
+        //   //옵션을 db에 저장
+        //   if (item.optionName === "" || item.inventory === "") {
+        //     console.log("값이 비어있어 반복문을 넘어감");
+        //     continue;
+        //   }
+        //   // if (item.optionName)
+        //   console.log("i 값 확인", item);
+        //   db.query(
+        //     `INSERT INTO product_option(option_name, product_id, inventory) VALUES(?, ?, ?)`,
+        //     [item.optionName, productId.productId, item.inventory],
+        //     function (err, result) {
+        //       if (err) {
+        //         return res.status(500).json({
+        //           message: "DB_ERROR_IMAGE",
+        //           content: err,
+        //         });
+        //       }
+        //     }
+        //   );
+        // }
+
+        if (req.files.product_image) {
+          const fileDataProduct_image = req.files.product_image[0].filename;
+          db.query(
+            `SELECT image_thumnail_path FROM image WHERE product_idx=?`,
+            [productId],
+            function (err, row) {
+              if (err) {
+                return res.status(500).json({
+                  message: "DB_ERROR_IMAGE",
+                  content: err,
+                });
+              }
+              const prevImagePath = row[0];
+              db.query(
+                `UPDATE SET image_thumnail_path=? WHERE product_id=?`,
+                [fileDataProduct_image, productId],
+                function (err2, result) {
+                  if (err2) {
+                    return res.status(500).json({
+                      message: "DB_ERROR_IMAGE",
+                      content: err2,
+                    });
+                  }
+                  fs.unlink(prevImagePath, (err3) => {
+                    if (err3) {
+                      console.log("파일 삭제 실패", err3);
+                    }
+                    console.log("파일 삭제 성공");
+                  });
+                }
+              );
+            }
+          );
+        } else if (req.files.product_detail_image) {
+          const fileDataProduct_detail_image =
+            req.files.product_detail_image[0].filename;
+          db.query(
+            `UPDATE SET image_detail_path=? WHERE product_id=?`,
+            [fileDataProduct_detail_image, productId],
+            function (err, result) {
+              if (err) {
+                return res.status(500).json({
+                  message: "DB_ERROR_IMAGE",
+                  content: err,
+                });
+              }
+            }
+          );
+        }
+        res.status(200).json({
+          message: "Product update is success",
+        });
+      }
+    );
+  }
+);
+
 module.exports = router;
