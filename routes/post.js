@@ -135,4 +135,26 @@ router.get("/get-review-list-process", function (req, res) {
   );
 });
 
+//리뷰 DB 값의 평균 값 전달하기
+router.get("/get-review-average-process", function (req, res) {
+  const post = req.query;
+  console.log("post 값", post);
+  db.query(
+    `SELECT AVG(evaluation_star) AS review_average, COUNT(idx) AS review_count FROM review WHERE product_idx=?`,
+    [post.productId],
+    function (err, row) {
+      if (err) {
+        console.log(err);
+        return res.status(404).json({
+          message: "DB_ERROR_REVIEW_AVERAGE",
+        });
+      }
+      res.status(200).json({
+        message: "Success",
+        contents: row[0],
+      });
+    }
+  );
+});
+
 module.exports = router;
