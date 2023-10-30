@@ -196,6 +196,7 @@ router.put(
             content: err,
           });
         }
+        // console.log("update 결과 값", result);
         //옵션 수정
         db.query(
           `SELECT option_name FROM product_option WHERE product_id=?`,
@@ -207,46 +208,86 @@ router.put(
                 content: err,
               });
             }
-            console.log("rows 값", rows);
+            // console.log("rows 값", rows);
+            let prevData = rows.map((item) => item.option_name);
+            let newOneData = post.product_option.map((item) => item.optionName);
 
-            let haveToUpdate = post.product_option.filter((item) =>
-              rows.includes(item.optionName)
+            let haveToUpdate = newOneData.filter((item) =>
+              prevData.includes(item)
             );
-            let haveToDelete = post.product_option.filter(
-              (item) => !rows.includes(item.optionName)
+            let haveToDelete = prevData.filter(
+              (item) => !newOneData.includes(item)
             );
-            let haveToInsert = rows.filter(
-              (item) => !post.product_option.includes(item.option_name)
+            let haveToInsert = newOneData.filter(
+              (item) => !prevData.includes(item)
             );
-            console.log(
-              "option 확인",
-              haveToUpdate,
-              haveToDelete,
-              haveToInsert
-            );
+            // console.log(
+            //   "option 확인",
+            //   prevData,
+            //   newOneData,
+            //   "정리된 값",
+            //   haveToUpdate,
+            //   haveToInsert,
+            //   haveToDelete
+            // );
+            if (haveToUpdate) {
+              for (let i = 0; i < post.product_option.length; i++) {
+                for (let item of haveToUpdate) {
+                  if (post.product_option[i].optionName == item) {
+                    db.query(
+                      `UPDATE product_option SET inventory=? WHERE option_name=? AND product_id=?`,
+                      [post.product_option[i].inventory, item, productId],
+                      function (err, result) {
+                        if (err) {
+                          return res.status(500).json({
+                            message: "DB_ERROR_OPTION_UPDATE",
+                            content: err,
+                          });
+                        }
+                      }
+                    );
+                  }
+                }
+              }
+            }
+            if (haveToInsert) {
+              for (let i = 0; i < post.product_option.length; i++) {
+                for (let item of haveToInsert) {
+                  if (post.product_option[i].optionName == item) {
+                    db.query(
+                      `INSERT INTO product_option(option_name, product_id, inventory) VALUES(?, ?, ?)`,
+                      [item, productId, post.product_option[i].inventory],
+                      function (err, result) {
+                        if (err) {
+                          return res.status(500).json({
+                            message: "DB_ERROR_OPTION_INSERT",
+                            content: err,
+                          });
+                        }
+                      }
+                    );
+                  }
+                }
+              }
+            }
+            if (haveToDelete) {
+              for (let item of haveToDelete) {
+                db.query(
+                  `DELETE FROM product_option WHERE option_name=? AND product_id=?`,
+                  [item, productId],
+                  function (err, result) {
+                    if (err) {
+                      return res.status(500).json({
+                        message: "DB_ERROR_OPTION_INSERT",
+                        content: err,
+                      });
+                    }
+                  }
+                );
+              }
+            }
           }
         );
-        // for (let item of post.product_option) {
-        //   //옵션을 db에 저장
-        //   if (item.optionName === "" || item.inventory === "") {
-        //     console.log("값이 비어있어 반복문을 넘어감");
-        //     continue;
-        //   }
-        //   // if (item.optionName)
-        //   console.log("i 값 확인", item);
-        //   db.query(
-        //     `INSERT INTO product_option(option_name, product_id, inventory) VALUES(?, ?, ?)`,
-        //     [item.optionName, productId.productId, item.inventory],
-        //     function (err, result) {
-        //       if (err) {
-        //         return res.status(500).json({
-        //           message: "DB_ERROR_IMAGE",
-        //           content: err,
-        //         });
-        //       }
-        //     }
-        //   );
-        // }
 
         if (req.files.product_image) {
           const fileDataProduct_image = req.files.product_image[0].filename;
@@ -260,9 +301,9 @@ router.put(
                   content: err,
                 });
               }
-              const prevImagePath = row[0];
+              const prevImagePath = `./uploads/${row[0].image_thumnail_path}`;
               db.query(
-                `UPDATE SET image_thumnail_path=? WHERE product_id=?`,
+                `UPDATE image SET image_thumnail_path=? WHERE product_idx=?`,
                 [fileDataProduct_image, productId],
                 function (err2, result) {
                   if (err2) {
@@ -284,22 +325,75 @@ router.put(
         } else if (req.files.product_detail_image) {
           const fileDataProduct_detail_image =
             req.files.product_detail_image[0].filename;
+          // console.log("filename 확인", fileDataProduct_detail_image);
           db.query(
-            `UPDATE SET image_detail_path=? WHERE product_id=?`,
-            [fileDataProduct_detail_image, productId],
-            function (err, result) {
+            `SELECT image_detail_path FROM image WHERE product_idx=?`,
+            [productId],
+            function (err, row) {
               if (err) {
                 return res.status(500).json({
                   message: "DB_ERROR_IMAGE",
                   content: err,
                 });
               }
+              console.log("delete 할 파일", row[0]);
+              const prevImagePath = `./uploads/${row[0].image_detail_path}`;
+              db.query(
+                `UPDATE image SET image_detail_path=? WHERE product_idx=?`,
+                [fileDataProduct_detail_image, productId],
+                function (err2, result) {
+                  if (err) {
+                    return res.status(500).json({
+                      message: "DB_ERROR_IMAGE",
+                      content: err2,
+                    });
+                  }
+                  // console.log("update 결과 값", result);
+                  fs.unlink(prevImagePath, (err3) => {
+                    if (err3) {
+                      console.log("파일 삭제 실패", err3);
+                    }
+                    console.log("파일 삭제 성공");
+                  });
+                }
+              );
             }
           );
         }
-        res.status(200).json({
-          message: "Product update is success",
-        });
+        db.query(
+          `SELECT a.idx, a.category_idx, b.category_name, a.product_name, a.product_description, a.product_discount, a.product_price, c.image_thumnail_path, c.image_detail_path FROM product AS a 
+          INNER JOIN product_category AS b ON a.category_idx = b.idx 
+          INNER JOIN image AS c ON a.idx = c.product_idx WHERE a.idx = ?`,
+          [productId],
+          function (err, row) {
+            if (err) {
+              console.log(err);
+              return res.status(404).json({
+                message: "DB_ERROR",
+              });
+            }
+            console.log("row", row);
+            db.query(
+              `SELECT * FROM product_option WHERE product_id = ?`,
+              [productId],
+              function (err, row2) {
+                if (err) {
+                  console.log(err);
+                  return res.status(404).json({
+                    message: "DB_ERROR",
+                  });
+                }
+                return res.status(200).json({
+                  message: "Product update is success",
+                  contents: {
+                    detailData: row,
+                    option: row2,
+                  },
+                });
+              }
+            );
+          }
+        );
       }
     );
   }
