@@ -13,7 +13,9 @@ var usersRouter = require("./routes/users");
 var postRouter = require("./routes/post");
 var postAuthRouter = require("./routes/post-auth");
 var adminRouter = require("./routes/admin");
+var adminAuthRouter = require("./routes/admin-auth");
 var tokenAuth = require("./util/tokenAuth");
+var adminTokenAuth = require("./util/adminTokenAuth");
 var userCheck = require("./util/userCheck");
 var refresh = require("./util/refreshToken");
 
@@ -52,6 +54,7 @@ app.use("/post", postRouter);
 // app.use("/post-auth", tokenAuth, userCheck, postAuthRouter);
 app.use("/post-auth", tokenAuth, postAuthRouter);
 app.use("/admin", adminRouter);
+app.use("/admin-auth", adminTokenAuth, adminAuthRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

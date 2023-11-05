@@ -14,9 +14,16 @@ const refresh = async (req, res) => {
         message: "NO_AUTHORIZED",
       });
     }
+    console.log("decode 값", decoded);
     // console.log("refreshToken 값", refreshToken);
 
-    const refreshResult = await refreshVerify(refreshToken, decoded.idx);
+    let refreshResult;
+    if (decoded.adminId) {
+      refreshResult = await refreshVerify(refreshToken, decoded.adminId);
+    } else {
+      refreshResult = await refreshVerify(refreshToken, decoded.idx);
+    }
+
     if (!accessResult.authState) {
       // console.log("refreshResult 값", refreshResult);
       // console.log("accessResult 값", accessResult);
