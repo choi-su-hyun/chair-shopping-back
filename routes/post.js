@@ -5,12 +5,15 @@ var db = require("../lib/db");
 //상품 list 전송
 router.get("/product-list", function (req, res) {
   db.query(
-    `SELECT * FROM product INNER JOIN product_category ON product.category_idx = product_category.idx INNER JOIN image ON product.idx = image.product_idx`,
+    `SELECT a.idx, a.product_name, a.product_description, a.product_price, a.product_discount, a.category_idx, b.category_name, c.image_detail_path, c.image_thumnail_path FROM product AS a 
+    INNER JOIN product_category AS b ON a.category_idx = b.idx 
+    INNER JOIN image AS c ON a.idx = c.product_idx`,
     function (err, result) {
       // console.log(result);
       if (err) {
         return res.status(404).json({
           message: "DB_ERROR",
+          err,
         });
       }
       res.status(200).json({
