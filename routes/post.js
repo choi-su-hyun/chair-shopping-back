@@ -41,9 +41,9 @@ router.get("/product-category-tab", function (req, res) {
 });
 
 //특정 카테고리를 조건으로 상품 리스트 전송
-router.post("/product-category-data", function (req, res) {
-  const post = req.body;
-  // console.log(post);
+router.get("/product-category-data", function (req, res) {
+  const post = req.query;
+  console.log("post 값", post);
   db.query(
     `SELECT * FROM product INNER JOIN product_category ON product.category_idx = product_category.idx INNER JOIN image ON product.idx = image.product_idx WHERE category_idx=?`,
     [post.category_idx],
