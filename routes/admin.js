@@ -45,7 +45,6 @@ router.post("/admin-login-process", function (req, res) {
 
     return res.status(200).json({
       message: "THIS_USER_CERTIFICATED",
-      // adminId: rows[0].admin_id,
       token: token,
       refreshToken: refreshToken,
     });
