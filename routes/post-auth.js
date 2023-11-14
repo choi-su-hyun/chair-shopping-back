@@ -158,9 +158,16 @@ router.post(
     //   post.productId.id,
     //   post.reviewTitle,
     //   post.reviewParagraph,
-    //   post.reviewStarRate,
-    //   files.reviewImage[0].filename
+    //   post.reviewStarRate
+    //   // files.reviewImage[0].filename
     // );
+
+    let fileData;
+    if (files.reviewImage == undefined) {
+      fileData = null;
+    } else {
+      fileData = files.reviewImage[0].filename;
+    }
     db.query(
       `INSERT INTO review(user_idx, product_idx, title, paragraph, evaluation_star, review_image_path) VALUES(?, ?, ?, ?, ?, ?)`,
       [
@@ -169,7 +176,7 @@ router.post(
         post.reviewTitle,
         post.reviewParagraph,
         post.reviewStarRate,
-        files.reviewImage[0].filename,
+        fileData,
       ],
       function (err, result) {
         if (err) {
@@ -179,15 +186,39 @@ router.post(
             err,
           });
         }
-        // res.status(200).json({
-        //   message: "SUCCESS",
-        //   // result: result,
-        // });
       }
     );
-    res.status(200).json({
-      message: "SUCCESS",
-    });
+    db.query(
+      `SELECT a.created_date, b.user_name, a.user_idx, a.review_image_path, a.evaluation_star, a.paragraph, a.title, a.product_idx FROM review AS a 
+      JOIN user AS b ON a.user_idx = b.idx WHERE a.product_idx=?`,
+      [post.productId.id],
+      function (err, rows) {
+        if (err) {
+          console.log(err);
+          return res.status(500).json({
+            message: "DB_ERROR",
+            err,
+          });
+        }
+        db.query(
+          `SELECT AVG(evaluation_star) AS review_average, COUNT(idx) AS review_count FROM review WHERE product_idx=?`,
+          [post.productId.id],
+          function (err2, row2) {
+            if (err2) {
+              console.log(err);
+              return res.status(404).json({
+                message: "DB_ERROR_REVIEW_AVERAGE",
+                err2,
+              });
+            }
+            res.status(200).json({
+              message: "SUCCESS",
+              contents: { review: rows, reviewAverage: row2[0] },
+            });
+          }
+        );
+      }
+    );
   }
 );
 
