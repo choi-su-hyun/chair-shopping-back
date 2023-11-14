@@ -6,7 +6,7 @@ var fs = require("fs");
 
 //category DB 생성
 router.post("/category-create-process", function (req, res) {
-  const post = req.body;
+  const post = req.body.categoryName;
   db.query(
     `INSERT INTO product_category(category_name) VALUES(?)`,
     [post],
@@ -14,13 +14,131 @@ router.post("/category-create-process", function (req, res) {
       if (err) {
         return res.status(500).json({
           message: "DB_ERROR",
+          err,
         });
       }
-      console.log(result);
-      res.status(200).json({
-        message: "SUCCESS_INSERT",
-        content: result,
+      db.query(`SELECT * FROM product_category`, function (err2, rows) {
+        if (err2) {
+          return res.status(500).json({
+            message: "DB_ERROR",
+            err2,
+          });
+        }
+        res.status(200).json({
+          message: "SUCCESS_INSERT",
+          contents: rows,
+        });
       });
+    }
+  );
+});
+
+//category 리스트 전달
+router.get("/category-list", function (req, res) {
+  db.query(`SELECT * FROM product_category`, function (err, rows) {
+    if (err) {
+      return res.status(500).json({
+        message: "DB_ERROR",
+        err,
+      });
+    }
+    res.status(200).json({
+      message: "SUCCESS",
+      contents: rows,
+    });
+  });
+});
+
+//특정 category 데이터 전달
+router.get("/get-category-data-process", function (req, res) {
+  const post = req.query.categoryId;
+  console.log("post 내용", post);
+  db.query(
+    `SELECT * FROM product_category WHERE idx=?`,
+    [post],
+    function (err, row) {
+      if (err) {
+        return res.status(500).json({
+          message: "DB_ERROR",
+          err,
+        });
+      }
+      res.status(200).json({
+        message: "SUCCESS",
+        contents: row[0],
+      });
+    }
+  );
+});
+
+//category DB 수정
+router.put("/edit-category-process", function (req, res) {
+  const post = req.body;
+
+  db.query(
+    `UPDATE product_category SET category_name=? WHERE idx=?`,
+    [post.categoryName, post.categoryId],
+    function (err, result) {
+      if (err) {
+        return res.status(500).json({
+          message: "DB_ERROR",
+          err,
+        });
+      }
+      db.query(`SELECT * FROM product_category`, function (err2, rows) {
+        if (err2) {
+          return res.status(500).json({
+            message: "DB_ERROR",
+            err2,
+          });
+        }
+        res.status(200).json({
+          message: "SUCCESS",
+          contents: rows,
+        });
+      });
+    }
+  );
+});
+
+//특정 category 삭제
+router.delete("/delete-category-process", function (req, res) {
+  const post = req.query;
+  console.log("post 내용", post);
+
+  db.query(
+    `DELETE FROM product_category WHERE idx=?`,
+    [post.categoryId],
+    function (err, result) {
+      if (err) {
+        return res.status(500).json({
+          message: "DB_ERROR",
+          err,
+        });
+      }
+      db.query(
+        `UPDATE product SET category_idx=6 WHERE category_idx IS null`,
+        function (err2, result) {
+          if (err2) {
+            return res.status(500).json({
+              message: "DB_ERROR",
+              err2,
+            });
+          }
+          db.query(`SELECT * FROM product_category`, function (err3, rows) {
+            if (err3) {
+              return res.status(500).json({
+                message: "DB_ERROR",
+                err3,
+              });
+            }
+            res.status(200).json({
+              message: "SUCCESS",
+              contents: rows,
+            });
+          });
+        }
+      );
     }
   );
 });
